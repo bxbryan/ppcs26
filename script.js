@@ -145,14 +145,14 @@ function getHeroPhaseTimings() {
   const baseHoldDuration = Math.max(0, previousBurstStart - baselineFinalHoldStart);
 
   const spanScale = 0.3;
-  const holdSpan = baseHoldDuration * spanScale * 0.125;
+  const holdSpan = baseHoldDuration * spanScale * 0.02;
   const burstDuration = baseBurstDuration * spanScale;
   const fadeDuration = baseFadeDuration * spanScale;
   const fadeEnd = 0.985;
   const fadeStart = fadeEnd - fadeDuration;
   const burstStart = fadeStart - burstDuration;
   const finalHoldStart = burstStart - holdSpan;
-  const flyInEnd = Math.max(0.1, (Math.max(0.2, burstStart - 0.02)) / 3);
+  const flyInEnd = Math.max(0.2, burstStart - 0.03);
   return {
     flyInEnd,
     finalHoldStart,
@@ -218,11 +218,14 @@ function updateHero(progress) {
   setHeroCase(caseMode);
 
   const startGap = clamp(window.innerWidth * 0.042, 26, 56);
-  const nearFinalGap = measurePairSpace(
+  const measuredPairGap = measurePairSpace(
     firstName,
     firstName.textContent || "Bryan",
     lastName.textContent || "Xu",
   );
+  const fontSize = parseFloat(window.getComputedStyle(firstName).fontSize) || 0;
+  const opticalGapBoost = fontSize * 0.14;
+  const nearFinalGap = measuredPairGap + opticalGapBoost;
   const preFinalLocal = clamp(progress / finalHoldStart, 0, 1);
   const preFinalGap =
     startGap + (nearFinalGap - startGap) * easeOutCubic(preFinalLocal);

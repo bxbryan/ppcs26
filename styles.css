@@ -59,7 +59,7 @@ main {
 }
 
 .hero-scroll {
-  height: 2160vh;
+  height: 1080vh;
 }
 
 .hero-sticky {
@@ -224,7 +224,7 @@ main {
 
 @media (max-width: 880px) {
   .hero-scroll {
-    height: 1920vh;
+    height: 960vh;
   }
 
   .movement-section {
