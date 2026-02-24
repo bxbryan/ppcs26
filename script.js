@@ -40,6 +40,14 @@ const STYLE_POOL_LENGTH = Math.ceil(TARGET_STYLE_STEPS / STYLE_RATE_MULTIPLIER) 
 const ORIGINAL_FONT_PHASE_END = 0.72;
 const FONT_PHASE_LENGTH_FACTOR = 0.45;
 const FONT_PHASE_END = ORIGINAL_FONT_PHASE_END * FONT_PHASE_LENGTH_FACTOR;
+const BASE_HOLD_SPAN_FACTOR = 0.1;
+const HOLD_SCROLL_MULTIPLIER = 2.5;
+const HOLD_SPACING_DRIFT_MULTIPLIER = 0.5;
+const HOLD_SPACING_DRIFT_BASE = 0.9;
+const HOLD_WORD_SCALE_DELTA = 0;
+const HOLD_GROUP_SCALE_DELTA = 0;
+const FLY_IN_LENGTH_MULTIPLIER = 0.6;
+const FINAL_STYLE_SWITCH_AT_FLYIN = 0.99;
 
 const familyPool = [
   '"Voyage", "Instrument Serif", serif',
@@ -145,14 +153,16 @@ function getHeroPhaseTimings() {
   const baseHoldDuration = Math.max(0, previousBurstStart - baselineFinalHoldStart);
 
   const spanScale = 0.3;
-  const holdSpan = baseHoldDuration * spanScale * 0.02;
+  const holdSpan =
+    baseHoldDuration * spanScale * BASE_HOLD_SPAN_FACTOR * HOLD_SCROLL_MULTIPLIER;
   const burstDuration = baseBurstDuration * spanScale;
   const fadeDuration = baseFadeDuration * spanScale;
   const fadeEnd = 0.985;
   const fadeStart = fadeEnd - fadeDuration;
   const burstStart = fadeStart - burstDuration;
   const finalHoldStart = burstStart - holdSpan;
-  const flyInEnd = Math.max(0.2, burstStart - 0.03);
+  const baselineFlyInEnd = Math.max(0.2, burstStart - 0.03);
+  const flyInEnd = clamp(baselineFlyInEnd * FLY_IN_LENGTH_MULTIPLIER, 0.12, 0.95);
   return {
     flyInEnd,
     finalHoldStart,
@@ -190,7 +200,13 @@ function setHeroCase(mode) {
 }
 
 function updateHero(progress) {
-  const { flyInEnd, finalHoldStart, burstStart, fadeStart, fadeEnd } = getHeroPhaseTimings();
+  const {
+    flyInEnd,
+    finalHoldStart,
+    burstStart,
+    fadeStart,
+    fadeEnd,
+  } = getHeroPhaseTimings();
   const flyLocal = clamp(progress / flyInEnd, 0, 1);
   const flyEased = easeOutCubic(flyLocal);
   const styleLocal = clamp(progress / finalHoldStart, 0, 1);
@@ -200,13 +216,17 @@ function updateHero(progress) {
   );
   const styleStep = Math.floor(styleLocal * totalStyleSteps);
   const styleIndex = styleStep % heroStyleCycle.length;
-  const finalStyleStart = flyInEnd * 0.95;
+  const finalStyleStart = clamp(
+    flyInEnd * FINAL_STYLE_SWITCH_AT_FLYIN,
+    0,
+    burstStart - 0.001,
+  );
   const burstLocal = clamp((progress - burstStart) / (fadeStart - burstStart), 0, 1);
-  const burstEased = easeInPower(burstLocal, 2.25);
+  const burstEased = easeInPower(burstLocal, 1.85);
   const fadeLocal = clamp((progress - fadeStart) / (fadeEnd - fadeStart), 0, 1);
-  const fadeEased = easeInPower(fadeLocal, 2.5);
+  const fadeEased = easeInPower(fadeLocal, 2.2);
   const throwLocal = clamp((progress - burstStart) / (fadeEnd - burstStart), 0, 1);
-  const throwEased = easeInPower(throwLocal, 2.2);
+  const throwEased = easeInPower(throwLocal, 1.8);
   const preBurstLocal = clamp(progress / burstStart, 0, 1);
   const finalHoldLocal = clamp((progress - finalHoldStart) / (burstStart - finalHoldStart), 0, 1);
   const shouldUseFinalStyle = progress >= finalStyleStart;
@@ -229,10 +249,11 @@ function updateHero(progress) {
   const preFinalLocal = clamp(progress / finalHoldStart, 0, 1);
   const preFinalGap =
     startGap + (nearFinalGap - startGap) * easeOutCubic(preFinalLocal);
+  const holdSpacingDrift = HOLD_SPACING_DRIFT_BASE * HOLD_SPACING_DRIFT_MULTIPLIER;
   const gap =
     progress < finalHoldStart
       ? preFinalGap
-      : nearFinalGap + (1 - finalHoldLocal) * 0.9;
+      : nearFinalGap + (1 - finalHoldLocal) * holdSpacingDrift;
   const offscreenMargin = clamp(window.innerWidth * 0.16, 140, 340);
 
   firstName.style.fontFamily = style.family;
@@ -258,21 +279,25 @@ function updateHero(progress) {
   const lastX = lastStart + (lastEnd - lastStart) * flyEased;
   const skewValue = 9 * (1 - flyEased);
 
+  const holdTextScale = 1 + finalHoldLocal * HOLD_WORD_SCALE_DELTA;
   firstName.style.transform =
     `translate3d(${firstX.toFixed(1)}px, -50%, 0) ` +
-    `skewX(${(-skewValue).toFixed(2)}deg)`;
+    `skewX(${(-skewValue).toFixed(2)}deg) ` +
+    `scale(${holdTextScale.toFixed(3)})`;
   lastName.style.transform =
     `translate3d(${lastX.toFixed(1)}px, -50%, 0) ` +
-    `skewX(${skewValue.toFixed(2)}deg)`;
+    `skewX(${skewValue.toFixed(2)}deg) ` +
+    `scale(${holdTextScale.toFixed(3)})`;
 
   const settleOpacity = 0.2 + 0.8 * flyEased;
   const groupOpacity = clamp(settleOpacity * (1 - fadeEased), 0, 1);
-  const combinedMotion = clamp(0.25 * burstEased + 0.75 * throwEased, 0, 1);
+  const combinedMotion = clamp(0.35 * burstEased + 0.65 * throwEased, 0, 1);
   const nameBlur = clamp((1 - flyEased) * 4.6 + fadeEased * 1.8, 0, 8);
-  const preBurstScale = 1 + finalHoldLocal * 0.045;
+  // Burst scale extends directly from the hold endpoint for continuity.
+  const preBurstScale = 1 + finalHoldLocal * HOLD_GROUP_SCALE_DELTA;
   const burstScale = preBurstScale + combinedMotion * 0.46;
-  const slowRise = -preBurstLocal * 10;
-  const burstRise = -combinedMotion * window.innerHeight * 0.43;
+  const slowRise = -preBurstLocal * 7;
+  const burstRise = -combinedMotion * window.innerHeight * 0.4;
   const groupBlur = combinedMotion * 3.2;
 
   heroName.style.transform =
