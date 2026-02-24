@@ -42,12 +42,14 @@ const FONT_PHASE_LENGTH_FACTOR = 0.45;
 const FONT_PHASE_END = ORIGINAL_FONT_PHASE_END * FONT_PHASE_LENGTH_FACTOR;
 const BASE_HOLD_SPAN_FACTOR = 0.1;
 const HOLD_SCROLL_MULTIPLIER = 2.5;
+const FINAL_HOLD_LENGTH_MULTIPLIER = 0.8;
 const HOLD_SPACING_DRIFT_MULTIPLIER = 0.5;
 const HOLD_SPACING_DRIFT_BASE = 0.9;
-const HOLD_WORD_SCALE_DELTA = 0;
+const HOLD_WORD_SCALE_DELTA = 0.012;
+const HOLD_GAP_SCALE_DELTA = 0.012;
 const HOLD_GROUP_SCALE_DELTA = 0;
 const FLY_IN_LENGTH_MULTIPLIER = 0.6;
-const FINAL_STYLE_SWITCH_AT_FLYIN = 0.99;
+const FINAL_STYLE_SWITCH_AT_FLYIN = 0.92;
 
 const familyPool = [
   '"Voyage", "Instrument Serif", serif',
@@ -154,7 +156,11 @@ function getHeroPhaseTimings() {
 
   const spanScale = 0.3;
   const holdSpan =
-    baseHoldDuration * spanScale * BASE_HOLD_SPAN_FACTOR * HOLD_SCROLL_MULTIPLIER;
+    baseHoldDuration *
+    spanScale *
+    BASE_HOLD_SPAN_FACTOR *
+    HOLD_SCROLL_MULTIPLIER *
+    FINAL_HOLD_LENGTH_MULTIPLIER;
   const burstDuration = baseBurstDuration * spanScale;
   const fadeDuration = baseFadeDuration * spanScale;
   const fadeEnd = 0.985;
@@ -250,10 +256,11 @@ function updateHero(progress) {
   const preFinalGap =
     startGap + (nearFinalGap - startGap) * easeOutCubic(preFinalLocal);
   const holdSpacingDrift = HOLD_SPACING_DRIFT_BASE * HOLD_SPACING_DRIFT_MULTIPLIER;
+  const holdGapScale = 1 + finalHoldLocal * HOLD_GAP_SCALE_DELTA;
   const gap =
     progress < finalHoldStart
       ? preFinalGap
-      : nearFinalGap + (1 - finalHoldLocal) * holdSpacingDrift;
+      : (nearFinalGap + (1 - finalHoldLocal) * holdSpacingDrift) * holdGapScale;
   const offscreenMargin = clamp(window.innerWidth * 0.16, 140, 340);
 
   firstName.style.fontFamily = style.family;
