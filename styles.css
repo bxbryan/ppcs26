@@ -39,15 +39,41 @@ body {
 .site-nav nav {
   display: flex;
   justify-content: flex-end;
+  align-items: baseline;
   gap: clamp(1.4rem, 3vw, 3.5rem);
   pointer-events: auto;
 }
 
-.site-nav a {
+.site-nav a,
+.nav-brand {
   color: var(--text-main);
-  text-decoration: none;
   font-size: clamp(1.65rem, 1.7vw, 2rem);
+  line-height: 1;
+}
+
+.site-nav a {
+  text-decoration: none;
   transition: opacity 220ms ease;
+}
+
+.nav-brand {
+  margin-right: auto;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.nav-brand.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.nav-brand.typing::after {
+  content: "|";
+  margin-left: 0.08em;
+  animation: type-caret 0.9s step-end infinite;
 }
 
 .site-nav a:hover {
@@ -111,9 +137,8 @@ main {
   position: sticky;
   top: 0;
   height: 100vh;
-  width: 100vw;
+  width: 100%;
   margin: 0;
-  margin-left: calc(50% - 50vw);
   padding-top: clamp(1rem, 4vh, 2rem);
   display: flex;
   flex-direction: column;
@@ -131,7 +156,8 @@ main {
 }
 
 .movement-line {
-  margin: 0;
+  width: max-content;
+  margin: 0 auto;
   min-height: 1em;
   font-size: clamp(2.3rem, 4.8vw, 64px);
   line-height: 0.94;
@@ -177,7 +203,7 @@ main {
 
 .works-section {
   width: var(--frame);
-  margin: 2rem auto 0;
+  margin: clamp(4.5rem, 10vh, 8rem) auto 0;
   padding-bottom: 8rem;
 }
 
@@ -232,6 +258,8 @@ main {
   }
 
   .movement-line {
+    width: 100%;
+    margin: 0;
     white-space: normal;
   }
 

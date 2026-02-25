@@ -3,6 +3,7 @@ const movementSection = document.getElementById("movement");
 const heroName = document.querySelector(".hero-name");
 const firstName = document.getElementById("first-name");
 const lastName = document.getElementById("last-name");
+const navBrand = document.getElementById("nav-brand");
 const movementLines = Array.from(document.querySelectorAll(".movement-line")).map(
   (line) => ({
     element: line,
@@ -17,6 +18,9 @@ const heroBaseText = {
   first: "Bryan",
   last: "Xu",
 };
+const NAV_BRAND_TEXT = "Bryan Xu";
+const NAV_BRAND_TYPE_DURATION_MS = 700;
+let navBrandTypeStartMs = null;
 
 function buildNameLetters(element, baseText) {
   element.textContent = "";
@@ -52,9 +56,10 @@ const FLY_IN_LENGTH_MULTIPLIER = 0.6;
 const FINAL_STYLE_SWITCH_AT_FLYIN = 0.92;
 
 const familyPool = [
-  '"Voyage", "Instrument Serif", serif',
+  '"Instrument Serif", serif',
   '"Parabolica", "Instrument Serif", serif',
   '"Redaction 50", "Redaction", "Instrument Serif", serif',
+  '"Voyage", "Instrument Serif", serif',
 ];
 const stylePairs = [
   ["normal", "normal"],
@@ -72,7 +77,12 @@ const weightPairs = [
   ["900", "200"],
   ["600", "500"],
 ];
-const spacingPool = ["-0.033em", "-0.028em", "-0.024em", "-0.02em", "-0.015em", "-0.01em"];
+
+function getTrackedSpacingForFamily(family, fallback) {
+  if (family.includes("Parabolica")) return "-0.06em";
+  if (family.trim().startsWith('"Instrument Serif"')) return "-0.05em";
+  return fallback;
+}
 
 const shuffledIndices = Array.from({ length: STYLE_POOL_LENGTH }, (_, index) => index).sort(
   () => Math.random() - 0.5,
@@ -87,7 +97,12 @@ const heroStyleCycle = shuffledIndices.map((seed) => {
     rightStyle,
     leftWeight,
     rightWeight,
-    spacing: spacingPool[(seed * 2 + 3) % spacingPool.length],
+    spacing: getTrackedSpacingForFamily(
+      familyPool[seed % familyPool.length],
+      ["-0.033em", "-0.028em", "-0.024em", "-0.02em", "-0.015em", "-0.01em"][
+        (seed * 2 + 3) % 6
+      ],
+    ),
   };
 });
 
@@ -97,7 +112,7 @@ const finalHeroStyle = {
   rightStyle: "normal",
   leftWeight: "400",
   rightWeight: "400",
-  spacing: "-0.022em",
+  spacing: "-0.05em",
 };
 
 const letterBurstVectors = allNameLetters.map((_, index) => {
@@ -205,6 +220,29 @@ function setHeroCase(mode) {
   });
 }
 
+function updateNavBrand(progress, fadeEnd) {
+  if (!navBrand) return;
+
+  const visible = progress >= fadeEnd;
+
+  navBrand.classList.toggle("visible", visible);
+  if (!visible) {
+    navBrandTypeStartMs = null;
+    navBrand.textContent = "";
+    navBrand.classList.remove("typing");
+    return;
+  }
+
+  if (navBrandTypeStartMs == null) {
+    navBrandTypeStartMs = performance.now();
+  }
+  const elapsed = performance.now() - navBrandTypeStartMs;
+  const typeLocal = clamp(elapsed / NAV_BRAND_TYPE_DURATION_MS, 0, 1);
+  const typedChars = Math.floor(NAV_BRAND_TEXT.length * typeLocal);
+  navBrand.textContent = NAV_BRAND_TEXT.slice(0, typedChars);
+  navBrand.classList.toggle("typing", typedChars < NAV_BRAND_TEXT.length);
+}
+
 function updateHero(progress) {
   const {
     flyInEnd,
@@ -240,6 +278,8 @@ function updateHero(progress) {
   const caseMode = shouldUseFinalStyle
     ? "title"
     : ["title", "lower", "upper"][(styleIndex * 2) % 3];
+
+  updateNavBrand(progress, fadeEnd);
 
   setHeroCase(caseMode);
 
@@ -412,6 +452,11 @@ if (reduceMotion) {
     line.element.style.opacity = "1";
     line.element.style.filter = "blur(0)";
   });
+  if (navBrand) {
+    navBrand.textContent = NAV_BRAND_TEXT;
+    navBrand.classList.add("visible");
+    navBrand.classList.remove("typing");
+  }
 } else {
   let isTicking = false;
   const schedule = () => {
