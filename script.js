@@ -19,8 +19,9 @@ const heroBaseText = {
   last: "Xu",
 };
 const NAV_BRAND_TEXT = "Bryan Xu";
-const NAV_BRAND_TYPE_DURATION_MS = 700;
-let navBrandTypeStartMs = null;
+const NAV_BRAND_TYPE_INTERVAL_MS = 70;
+let navBrandTypeTimer = null;
+let navBrandTypingTriggered = false;
 
 function buildNameLetters(element, baseText) {
   element.textContent = "";
@@ -220,27 +221,50 @@ function setHeroCase(mode) {
   });
 }
 
-function updateNavBrand(progress, fadeEnd) {
+function stopNavBrandTyping() {
+  if (navBrandTypeTimer != null) {
+    window.clearInterval(navBrandTypeTimer);
+    navBrandTypeTimer = null;
+  }
+}
+
+function startNavBrandTyping() {
+  if (!navBrand) return;
+  stopNavBrandTyping();
+  navBrand.classList.add("visible", "typing");
+  navBrand.textContent = "";
+  let typedChars = 0;
+
+  navBrandTypeTimer = window.setInterval(() => {
+    typedChars += 1;
+    navBrand.textContent = NAV_BRAND_TEXT.slice(0, typedChars);
+    if (typedChars >= NAV_BRAND_TEXT.length) {
+      stopNavBrandTyping();
+      navBrand.classList.remove("typing");
+    }
+  }, NAV_BRAND_TYPE_INTERVAL_MS);
+}
+
+function updateNavBrand(heroProgress, movementProgress) {
   if (!navBrand) return;
 
-  const visible = progress >= fadeEnd;
+  const { fadeEnd } = getHeroPhaseTimings();
+  const visible = heroProgress >= fadeEnd || movementProgress > 0.01;
 
-  navBrand.classList.toggle("visible", visible);
   if (!visible) {
-    navBrandTypeStartMs = null;
+    stopNavBrandTyping();
+    navBrandTypingTriggered = false;
     navBrand.textContent = "";
+    navBrand.classList.remove("visible");
     navBrand.classList.remove("typing");
     return;
   }
 
-  if (navBrandTypeStartMs == null) {
-    navBrandTypeStartMs = performance.now();
+  navBrand.classList.add("visible");
+  if (!navBrandTypingTriggered) {
+    navBrandTypingTriggered = true;
+    startNavBrandTyping();
   }
-  const elapsed = performance.now() - navBrandTypeStartMs;
-  const typeLocal = clamp(elapsed / NAV_BRAND_TYPE_DURATION_MS, 0, 1);
-  const typedChars = Math.floor(NAV_BRAND_TEXT.length * typeLocal);
-  navBrand.textContent = NAV_BRAND_TEXT.slice(0, typedChars);
-  navBrand.classList.toggle("typing", typedChars < NAV_BRAND_TEXT.length);
 }
 
 function updateHero(progress) {
@@ -278,8 +302,6 @@ function updateHero(progress) {
   const caseMode = shouldUseFinalStyle
     ? "title"
     : ["title", "lower", "upper"][(styleIndex * 2) % 3];
-
-  updateNavBrand(progress, fadeEnd);
 
   setHeroCase(caseMode);
 
@@ -421,8 +443,11 @@ function updateMovement(progress) {
 }
 
 function render() {
-  updateHero(sectionProgress(heroSection));
-  updateMovement(sectionProgress(movementSection));
+  const heroProgress = sectionProgress(heroSection);
+  const movementProgress = sectionProgress(movementSection);
+  updateHero(heroProgress);
+  updateMovement(movementProgress);
+  updateNavBrand(heroProgress, movementProgress);
 }
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -453,6 +478,8 @@ if (reduceMotion) {
     line.element.style.filter = "blur(0)";
   });
   if (navBrand) {
+    stopNavBrandTyping();
+    navBrandTypingTriggered = true;
     navBrand.textContent = NAV_BRAND_TEXT;
     navBrand.classList.add("visible");
     navBrand.classList.remove("typing");
