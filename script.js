@@ -231,6 +231,7 @@ function stopNavBrandTyping() {
 function startNavBrandTyping() {
   if (!navBrand) return;
   stopNavBrandTyping();
+  navBrand.classList.remove("is-ready");
   navBrand.classList.add("visible", "typing");
   navBrand.textContent = "";
   let typedChars = 0;
@@ -241,6 +242,7 @@ function startNavBrandTyping() {
     if (typedChars >= NAV_BRAND_TEXT.length) {
       stopNavBrandTyping();
       navBrand.classList.remove("typing");
+      navBrand.classList.add("is-ready");
     }
   }, NAV_BRAND_TYPE_INTERVAL_MS);
 }
@@ -256,6 +258,7 @@ function updateNavBrand(heroProgress, movementProgress) {
     navBrandTypingTriggered = false;
     navBrand.textContent = "";
     navBrand.classList.remove("visible");
+    navBrand.classList.remove("is-ready");
     navBrand.classList.remove("typing");
     return;
   }
@@ -482,6 +485,7 @@ if (reduceMotion) {
     navBrandTypingTriggered = true;
     navBrand.textContent = NAV_BRAND_TEXT;
     navBrand.classList.add("visible");
+    navBrand.classList.add("is-ready");
     navBrand.classList.remove("typing");
   }
 } else {

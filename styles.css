@@ -45,7 +45,8 @@ body {
 }
 
 .site-nav a,
-.nav-brand {
+.nav-brand,
+.page-brand {
   color: var(--text-main);
   font-size: clamp(1.65rem, 1.7vw, 2rem);
   line-height: 1;
@@ -65,9 +66,19 @@ body {
   transition: opacity 180ms ease;
 }
 
+.page-brand {
+  margin-right: auto;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
 .nav-brand.visible {
   opacity: 1;
   visibility: visible;
+}
+
+.nav-brand.is-ready {
+  pointer-events: auto;
 }
 
 .nav-brand.typing::after {
@@ -247,6 +258,59 @@ main {
   background: var(--bg-main);
 }
 
+.about-page {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+.about-page-main {
+  flex: 1;
+  padding: 10rem 0 4rem;
+}
+
+.about-page-shell {
+  width: var(--frame);
+  margin: 0 auto;
+}
+
+.about-page-title {
+  margin: 0 0 clamp(3.5rem, 8vh, 6rem);
+  font-size: clamp(3.8rem, 6vw, 5.8rem);
+  font-weight: 400;
+  line-height: 0.95;
+}
+
+.about-page-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(3.5rem, 6vw, 7rem);
+}
+
+.about-page-image {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  background: linear-gradient(140deg, #f7f6f4 0%, #f1efeb 100%);
+}
+
+.about-page-copy {
+  max-width: 30rem;
+}
+
+.about-page-copy h2 {
+  margin: 0 0 2.25rem;
+  font-size: clamp(2.3rem, 3.4vw, 3.7rem);
+  font-weight: 400;
+  line-height: 1;
+}
+
+.about-page-copy p {
+  margin: 0;
+  font-size: clamp(2rem, 2.45vw, 2.6rem);
+  line-height: 1.35;
+}
+
 @media (max-width: 768px) {
   .hero-scroll {
     height: 960vh;
@@ -268,5 +332,18 @@ main {
 
   .about-section {
     margin-top: 2.5rem;
+  }
+
+  .about-page-main {
+    padding-top: 8rem;
+  }
+
+  .about-page-grid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .about-page-image {
+    max-width: 18rem;
   }
 }
