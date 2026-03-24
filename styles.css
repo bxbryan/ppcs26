@@ -1,8 +1,8 @@
 :root {
-  --bg-main: #f2f1ef;
-  --bg-soft: #ece9e1;
-  --text-main: #111111;
-  --frame: min(1120px, 90vw);
+  --bg-main: #fcfbf9;
+  --bg-soft: #fcfbf9;
+  --text-main: #383534;
+  --frame: min(1120px, 80vw);
 }
 
 *,
@@ -15,14 +15,13 @@ html,
 body {
   margin: 0;
   padding: 0;
+  background: var(--bg-main);
 }
 
 body {
   min-height: 100vh;
   color: var(--text-main);
-  background:
-    radial-gradient(circle at 10% -12%, #ffffff 0%, transparent 45%),
-    linear-gradient(180deg, var(--bg-main) 0%, var(--bg-soft) 100%);
+  background: var(--bg-main);
   font-family: "Instrument Serif", serif;
 }
 
@@ -34,6 +33,7 @@ body {
   z-index: 20;
   padding: 1.75rem 5vw;
   pointer-events: none;
+  background: var(--bg-main);
 }
 
 .site-nav nav {
@@ -229,8 +229,7 @@ main {
 .thumb {
   width: min(100%, 420px);
   aspect-ratio: 4 / 3;
-  background:
-    linear-gradient(140deg, #efeceb 0%, #dfdbd6 100%);
+  background: linear-gradient(140deg, #f7f6f4 40%, #eeece8 100%);
   border: 1px solid rgba(0, 0, 0, 0.03);
 }
 
@@ -245,10 +244,10 @@ main {
   padding: 2.6rem 5vw;
   text-align: center;
   font-size: clamp(1.65rem, 2vw, 2.25rem);
-  background: rgba(255, 255, 255, 0.32);
+  background: var(--bg-main);
 }
 
-@media (max-width: 880px) {
+@media (max-width: 768px) {
   .hero-scroll {
     height: 960vh;
   }
